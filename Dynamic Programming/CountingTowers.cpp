@@ -87,32 +87,24 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMaxBooks(vector<int> &prices,vector<int> &pages,int x,int index){
-    int n = prices.size();
-    
-    vector<int> prev(x+1,0),curr(x+1,0);
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=x;j++){
-            curr[j] = prev[j];
-            if(j>=prices[i-1]){
-                curr[j] = max(curr[j],prev[j-prices[i-1]] + pages[i-1]);
-            }
-        }
-        prev = curr;
+
+int dp[int32_t(1e6+1)][2]; 
+void filldp(){
+
+    dp[1][1] = 1;
+    dp[1][0] = 1;
+
+    for(int i=2;i<=1e6;i++){
+        dp[i][0] = ((dp[i-1][0]*4)%MOD + dp[i-1][1])%MOD;
+        dp[i][1] = (dp[i-1][0] + (2*dp[i-1][1])%MOD)%MOD;
     }
-    return prev[x];
 }
 
 void solve() {
-    int n, x;
-    cin >> n >> x;
-    
-    vector<int> prices(n),pages(n);
-    for(int i=0;i<n;i++)    cin>>prices[i];
-    for(int i=0;i<n;i++)    cin>>pages[i];
+    int n;
+    cin >> n;
 
-    int books = findMaxBooks(prices,pages,x,n);
-    cout<<books<<endl;
+    cout<<(dp[n][1] + dp[n][0])%MOD<<endl;
 }
 
 int32_t main()
@@ -126,11 +118,16 @@ int32_t main()
 
     clock_t z = clock();
 
+    filldp();
     int t = 1;
-    // cin >> t;
+    cin >> t;
     while (t--) solve();
 
     cerr << "Run Time : " << ((double)(clock() - z) / CLOCKS_PER_SEC);
 
     return 0;
 }
+
+
+
+

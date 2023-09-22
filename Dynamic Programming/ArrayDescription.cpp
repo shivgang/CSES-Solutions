@@ -87,32 +87,61 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMaxBooks(vector<int> &prices,vector<int> &pages,int x,int index){
-    int n = prices.size();
-    
-    vector<int> prev(x+1,0),curr(x+1,0);
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=x;j++){
-            curr[j] = prev[j];
-            if(j>=prices[i-1]){
-                curr[j] = max(curr[j],prev[j-prices[i-1]] + pages[i-1]);
-            }
-        }
-        prev = curr;
+int findCombinations(vector<int> &nums,int m,int index,int prev,vector<vector<int>> &dp){
+    if(nums.size() == index){    
+        return 1;
     }
-    return prev[x];
+   
+    if(prev<1 || prev>m)    return 0;
+    if(dp[index][prev]!=-1)   return dp[index][prev];
+
+    int count = 0;
+    if(nums[index]!=0){  
+        int difference = abs(nums[index]-prev);
+        if((difference==-1 || difference==0 || difference==1) && nums[index]>=1 && nums[index]<=m){
+            count += findCombinations(nums,m,index+1,nums[index],dp)%MOD;
+            count %= MOD;
+        }
+        return dp[index][prev] = count;
+    }
+    else{
+        for(int i=-1;i<=1;i++){
+            int number = prev + i;
+            if(number<1 || number>m)    
+                continue;
+            count += findCombinations(nums,m,index+1,number,dp)%MOD;
+            count %= MOD;
+        }
+    }
+    return dp[index][prev] = count;
 }
 
 void solve() {
-    int n, x;
-    cin >> n >> x;
-    
-    vector<int> prices(n),pages(n);
-    for(int i=0;i<n;i++)    cin>>prices[i];
-    for(int i=0;i<n;i++)    cin>>pages[i];
+    int n, m;
+    cin>>n>>m;
 
-    int books = findMaxBooks(prices,pages,x,n);
-    cout<<books<<endl;
+    vector<int> nums(n);
+    for(int i=0;i<n;i++)    cin>>nums[i];
+
+    if(n==1){
+        if(nums[0]==0){  
+            cout<<m<<endl;
+            return;
+        }
+        cout<<1<<endl;
+        return;
+    }
+    vector<vector<int>> dp(n,vector<int>(m+1,-1));
+    int findArray = 0;
+    if(nums[0]==0){
+        for(int i=1;i<=m;i++){
+            findArray += findCombinations(nums,m,1,i,dp)%MOD;
+            findArray %= MOD;
+        }
+    }else{
+        findArray = findCombinations(nums,m,1,nums[0],dp);
+    }
+    cout<<findArray<<endl;
 }
 
 int32_t main()
