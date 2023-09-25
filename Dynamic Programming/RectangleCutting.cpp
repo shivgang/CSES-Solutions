@@ -87,39 +87,35 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int dp[5001][5001];
-int findDistance(string a,string b){
-    int n = a.size() , m = b.size();
-    
-    dp[0][0] = 0;
-    
-    for(int i=1;i<=n;i++){
-        dp[i][0] = i;
-    }
+int findMinCuts(int n,int m){
 
-    for(int i=1;i<=m;i++){
-        dp[0][i] = i;
-    }
+    int dp[n+1][m+1] = {0};
 
     for(int i=1;i<=n;i++){
         for(int j=1;j<=m;j++){
-            if(a[i-1]==b[j-1])  dp[i][j] = dp[i-1][j-1];
+            if(i==j)    dp[i][j] = 0;
             else{
-                dp[i][j] = 1 + min(dp[i-1][j-1],min(dp[i-1][j],dp[i][j-1]));
+                int result =  1e8;
+                for(int k=1;k<i;k++){       // horizontal cut
+                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
+                }
+                for(int k=1;k<j;k++){       /   / vertical cut
+                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
+                }
+                dp[i][j] = result;
             }
         }
     }
-
     return dp[n][m];
-    // return 0;
 }
 
 void solve() {
-    string n,m;
+    int n, m;
     cin >> n >> m;
+    
+    int cuts = findMinCuts(n,m);
 
-    int distance = findDistance(n,m);
-    cout<<distance<<endl;
+    cout<<cuts<<endl;
 }
 
 int32_t main()

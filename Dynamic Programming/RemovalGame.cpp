@@ -87,39 +87,57 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int dp[5001][5001];
-int findDistance(string a,string b){
-    int n = a.size() , m = b.size();
+// int dp[5001][5001];
+// int findScore(vector<int> &nums,int i,int j){
+//     if(i>j) return 0;
+//     if(i==j)    return nums[i];
+//     if(dp[i][j]!=-1)    return dp[i][j];
+//     int left = nums[i] + min(findScore(nums,i+2,j),findScore(nums,i+1,j-1));
+//     int right = nums[j] + min(findScore(nums,i+1,j-1),findScore(nums,i,j-2));
+
+//     return dp[i][j] = max(left,right);
+// }
+
+int findScore(vector<int> &nums){
+    int n = nums.size();
+    // memset(dp,-1,sizeof(dp));
+    // return findScore(nums,0,n-1);
     
-    dp[0][0] = 0;
-    
-    for(int i=1;i<=n;i++){
-        dp[i][0] = i;
-    }
+    int dp[5001][5001]={0};
 
-    for(int i=1;i<=m;i++){
-        dp[0][i] = i;
-    }
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(a[i-1]==b[j-1])  dp[i][j] = dp[i-1][j-1];
-            else{
-                dp[i][j] = 1 + min(dp[i-1][j-1],min(dp[i-1][j],dp[i][j-1]));
-            }
-        }
-    }
-
-    return dp[n][m];
-    // return 0;
+    // for(int i=n-1;i>=0;i--){
+    //     for(int j=i;j<n;j++){
+            // if(i>j){
+            //     continue;
+            // }
+            // if(i==j)    dp[i][j] = nums[i];
+            // else{
+                // int left = nums[i] + min(dp[i+2][j],dp[i+1][j-1]);
+                // int right = nums[j] + min(dp[i+1][j-1],dp[i][j-2]);
+                // dp[i][j] = max(left,right);
+                // if(i+2>n){
+                //     cout<<i<<" "<<i+2<<endl;
+                // }
+                // if(j-2<0){
+                //     cout<<"j "<<j<<" "<<j-2<<endl;
+                // }
+            // }
+            
+    //     }
+    // }
+    cout<<"end"<<endl;
+    // return dp[0][n-1];
+    return 0;
 }
 
 void solve() {
-    string n,m;
-    cin >> n >> m;
+    int n;
+    cin >> n;
+    vector<int> nums(n);
+    for(int i=0;i<n;i++)    cin>>nums[i];
 
-    int distance = findDistance(n,m);
-    cout<<distance<<endl;
+    int score = findScore(nums);
+    cout << score << endl;
 }
 
 int32_t main()

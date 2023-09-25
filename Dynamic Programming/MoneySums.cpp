@@ -87,39 +87,43 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int dp[5001][5001];
-int findDistance(string a,string b){
-    int n = a.size() , m = b.size();
+void findSums(vector<int> nums){
+    int n = nums.size();
     
-    dp[0][0] = 0;
-    
-    for(int i=1;i<=n;i++){
-        dp[i][0] = i;
-    }
+    int sum = 0;
+    for(int i=0;i<n;i++)    sum += nums[i];
 
-    for(int i=1;i<=m;i++){
-        dp[0][i] = i;
+    vector<vector<bool>> dp(n+1,vector<bool>(sum+1,false));
+    dp[0][0] = true;
+    for(int i=0;i<n;i++){
+        dp[i][0] = true;
     }
 
     for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(a[i-1]==b[j-1])  dp[i][j] = dp[i-1][j-1];
-            else{
-                dp[i][j] = 1 + min(dp[i-1][j-1],min(dp[i-1][j],dp[i][j-1]));
+        for(int j=1;j<=sum;j++){
+            dp[i][j] = dp[i-1][j];
+            if(j>=nums[i-1]){
+                dp[i][j] = dp[i][j] | dp[i-1][j-nums[i-1]];
             }
         }
     }
+    
+    vector<int> result;
+    for(int i=1;i<=sum;i++){
+        if(dp[n][i])    result.push_back(i);
+    }
 
-    return dp[n][m];
-    // return 0;
+    cout<<result.size()<<endl;
+    print(result);
 }
 
 void solve() {
-    string n,m;
-    cin >> n >> m;
+    int n;
+    cin >> n;
+    vector<int> nums(n);
+    for(int i=0;i<n;i++)    cin>>nums[i];
 
-    int distance = findDistance(n,m);
-    cout<<distance<<endl;
+    findSums(nums);
 }
 
 int32_t main()
