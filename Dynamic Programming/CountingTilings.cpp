@@ -87,35 +87,77 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
+// void generateNextMasks(const int n,int index,int mask,int nextMask,vector<int> &nextMasks){
+//     if(index == n+1){
+//         nextMasks.push_back(nextMask);
+//         return;
+//     }
 
-    int dp[n+1][m+1] = {0};
+//     if((mask & (1<<index)) != 0)   // when that place is already occupied
+//         generateNextMasks(n,index+1,mask,nextMask,nextMasks);
+    
+//     if(index != n   ){
+//         if( ( (mask & (1<<index)==0) ) && ( (mask & (1<<(index+1))) == 0) ) // when both places are unoccupied
+//             generateNextMasks(n,index+2,mask,nextMask,nextMasks);    // so we insert a 1x2 tile vertically
+//     }
+//     if( ( mask && (1<<index) ) == 0 )
+//         generateNextMasks(n,index+1,mask,nextMask | (1<<index),nextMasks);
 
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
-        }
+// }
+
+void generateNextMasks(int currentMask,int i,int nextMask,int n,vector<int> &nextMasks){
+    if(i == n+1){
+        nextMasks.push_back(nextMask);
+        return;
     }
-    return dp[n][m];
+
+    if((currentMask & (1<<i)) != 0)   // when that place is already occupied
+        generateNextMasks(currentMask,i+1,nextMask,n,nextMasks);
+    
+    if(i != n ){
+        if( ( (currentMask & (1<<i)==0) ) && ( (currentMask & (1<<(i+1))) == 0) ) // when both places are unoccupied
+            generateNextMasks(currentMask,i+2,nextMask,n,nextMasks);    // so we insert a 1x2 tile vertically
+    }
+    if( ( currentMask && (1<<i) ) == 0 )
+        generateNextMasks(currentMask,i+1,nextMask + (1<<i),n,nextMasks);
+
+}
+
+int dp[1<<11][1001];
+int findWays(const int n,const int m,int index,int mask){
+    if(index == m+1){
+        cout<<index<<" "<<mask<<endl;
+        if(mask==0)    return 1;
+        return 0;
+        
+    }
+
+    // if(dp[mask][index]!=-1) return dp[mask][index];
+
+    // cout<<"out"<<endl;
+    vector<int> nextMasks;
+    generateNextMasks(mask,1,0,n,nextMasks);
+    // print(nextMasks);
+
+    // cout<<"done"<<endl;
+    int ways = 0;
+    for(int nextMask:nextMasks){
+        ways = (ways + findWays(n,m,index+1,nextMask)%MOD);
+        ways %= MOD;
+    }
+
+    return dp[mask][index] = ways;
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
-
-    cout<<cuts<<endl;
+    // bug(n,m);
+    memset(dp,-1,sizeof(dp));
+    // cout<<"Start"<<endl;
+    int ways = findWays(n,m,1,0);   // doing 0 based indexing
+    cout <<ways<<endl;
 }
 
 int32_t main()

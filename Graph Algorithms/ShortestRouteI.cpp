@@ -87,35 +87,45 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
-
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
-        }
-    }
-    return dp[n][m];
-}
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<vector<pair<int,int>>> graph(n+1);
+    for(int i=0;i<m;i++){
+        int a , b , c;
+        cin >> a >> b >> c;
+        graph[a].push_back({b,c});
+    }
 
-    cout<<cuts<<endl;
+    vector<int> distance(n+1,LLONG_MAX);
+    priority_queue<pair<int,int>,vector<pair<int,int>>,greater<pair<int,int>>> q;
+    vector<bool> visited(n+1,false);
+    q.push({0,1});
+    distance[1] = 0;
+    while(!q.empty()){
+        auto front = q.top();q.pop();
+        int dist = front.first;
+        int node = front.second;
+
+        if(visited[node])   continue;
+        visited[node] = true;
+
+        for(auto pair:graph[node]){
+            int neighbour = pair.first;
+            int length = pair.second;
+            if(dist + length < distance[neighbour] && !visited[neighbour]){
+                distance[neighbour] = dist + length;
+                q.push({dist+length,neighbour});
+            }
+        }
+    }
+
+    for(int i=1;i<=n;i++){
+        cout<<distance[i]<<" ";
+    }cout<<endl;
+
 }
 
 int32_t main()

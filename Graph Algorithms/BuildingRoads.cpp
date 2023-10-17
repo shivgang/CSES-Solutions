@@ -87,35 +87,43 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
-
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
+void dfs(vector<vector<int>> &graph,bool* visited,int node){
+    visited[node] = true;
+    for(auto neighbour:graph[node]){
+        if(!visited[neighbour]){
+            dfs(graph,visited,neighbour);
         }
     }
-    return dp[n][m];
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<vector<int>> graph(n+1);
+    for(int i=0;i<m;i++){
+        int a,b;
+        cin >> a >> b;
+        graph[a].push_back(b);
+        graph[b].push_back(a);
+    }
 
-    cout<<cuts<<endl;
+    bool *visited = new bool[n+1]{false};
+    int components = 0;
+    vector<int> unconnected;
+
+    for(int i=1;i<=n;i++){
+        if(!visited[i]){
+            components++;
+            unconnected.push_back(i);
+            dfs(graph,visited,i);
+        }
+    }
+
+    cout<<components-1<<endl;
+    for(int i=1;i<unconnected.size();i++){
+        cout<<unconnected[i-1]<<" "<<unconnected[i]<<endl;
+    }
 }
 
 int32_t main()
@@ -136,4 +144,4 @@ int32_t main()
     cerr << "Run Time : " << ((double)(clock() - z) / CLOCKS_PER_SEC);
 
     return 0;
-}
+}   

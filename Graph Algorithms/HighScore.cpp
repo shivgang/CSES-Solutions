@@ -87,35 +87,51 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
+const int INF = 1e17;
+const int NINF = -1*(1e17);
 
-    int dp[n+1][m+1] = {0};
+void bellmanFord(){
+    int n, m;
+    cin >> n >> m;
 
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
+    vector<int> distance(2501,INF);    
+    vector<vector<int>> edges;
+    for(int i=0;i<m;i++){
+        int a , b , c;
+        cin >> a >> b >> c;
+        edges.push_back({a,b,-c});
+    }
+
+    distance[1] = 0;
+    for(int i=0;i<n;i++){
+        for(auto edge:edges){
+            int u = edge[0];
+            int v = edge[1];
+            int weight = edge[2];
+            if(distance[u]==INF)    continue;
+            distance[v] = min(distance[v],weight+distance[u]);
+        }
+    }
+
+    for(int i=0;i<n;i++){       // making all the negative cycle to be negative infinite
+        for(auto edge:edges){
+            int u = edge[0];
+            int v = edge[1];
+            int weight = edge[2];
+            if(distance[u] == INF) continue;
+            if(distance[v] > distance[u]+weight){
+                distance[v] = NINF;
             }
         }
     }
-    return dp[n][m];
+    if(distance[n]==NINF){
+        cout << -1 << endl;
+    }else    cout << (-1*distance[n]) << endl;
 }
-
 void solve() {
-    int n, m;
-    cin >> n >> m;
-    
-    int cuts = findMinCuts(n,m);
 
-    cout<<cuts<<endl;
+    bellmanFord();
+   
 }
 
 int32_t main()

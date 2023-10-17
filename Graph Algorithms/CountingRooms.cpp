@@ -70,8 +70,6 @@ int kmp(string haystack, string needle) {int n = haystack.size();int m = needle.
 
 int rabinKarp(string source, string target) { int n = source.size() , m = target.size(); int d = 31; int q = int32_t(1e9+7); int preCompute = 1; for(int i=1;i<m;i++){ preCompute *= d ; preCompute %= q; } int hsource = 0 , htarget = 0; for(int i=0;i<m;i++){ hsource  = (hsource*d + source[i])%q; htarget  = (htarget*d + target[i])%q; } if(hsource == htarget && source.substr(0,m)==target)    return 0;     for(int i=m;i<n;i++){ hsource = (hsource - preCompute*source[i-m])%q; hsource = (hsource*d + source[i])%q; if(hsource<0)    hsource+=q; if(hsource==htarget && source.substr(i-m+1,m)==target)  return i - m + 1; } return -1; }
 
-bool check(vector<vector<bool>> &grid,int i,int j){ if(i>=0 && i<grid.size() && j>=0 && j<grid[0].size() && !grid[i][j]) return true; return false; }
-
 vector<int> dx={-1,1,0,0};	vector<int> dy={0,0,-1,1};
 
 void printMatrix(vector<vector<int>> &matrix){ for(auto x:matrix){ for(auto y:x){ cout<<y<<" "; } cout<<endl;}}
@@ -87,35 +85,40 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
-
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
+bool check(vector<string> &matrix,int i,int j){ 
+    if(i>=0 && i<matrix.size() && j>=0 && j<matrix[0].size() && matrix[i][j]=='.') 
+        return true; 
+    return false; 
+}
+void dfs(vector<string> &matrix,int i,int j){
+    matrix[i][j] = '#';
+    for(int k=0;k<4;k++){
+        int newx = i + dx[k];
+        int newy = j + dy[k];
+        if(check(matrix,newx,newy)){
+            dfs(matrix,newx,newy);
         }
     }
-    return dp[n][m];
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
-    
-    int cuts = findMinCuts(n,m);
 
-    cout<<cuts<<endl;
+    vector<string> matrix(n);
+    for(int i=0;i<n;i++)    cin>>matrix[i];
+
+    int rooms = 0;
+    
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if(matrix[i][j]=='.'){
+                rooms++;
+                dfs(matrix,i,j);
+            }
+        }
+    }
+    cout << rooms << endl;
 }
 
 int32_t main()

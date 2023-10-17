@@ -87,35 +87,57 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
-
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
-        }
-    }
-    return dp[n][m];
+bool cmp(const vector<int> &a,const vector<int> &b){
+    if(a[0]==b[0])  
+        return a[2] < b[2];
+    return a[0]>b[0];
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<vector<pair<int,int>>> graph(n+1);
+    for(int i=0;i<m;i++){
+        int u , v , weight;
+        cin >> u >> v >> weight;
+        graph[u].push_back({v,weight});
+    }
 
-    cout<<cuts<<endl;
+    vector<pair<int,int>> distance(n+1,{LLONG_MAX,0});
+    priority_queue<vector<int>,vector<vector<int>>,greater<vector<int>>> pq;
+    
+    int result = LLONG_MAX;
+
+    pq.push({0,1,0});
+    distance[1] = {0,0};
+    while(!pq.empty()){
+        auto front = pq.top();
+        pq.pop();
+
+        int dist = front[0];
+        int node = front[1];
+        int maxi = front[2];
+        if(node==n){
+            maxi = maxi/2 + maxi%2;
+            result = min(result,(dist - maxi));
+            continue;
+        }
+
+        for(auto pair:graph[node]){
+            int neighbour = pair.first;
+            int weight = pair.second;
+
+            if(weight + dist < distance[neighbour].first || maxi>distance[neighbour].second){
+                distance[neighbour].first = weight + dist;
+                distance[neighbour].second = maxi;
+                pq.push({dist+weight,neighbour,max(maxi,weight)});
+            }
+        }
+
+    }
+
+    cout << result << endl;
 }
 
 int32_t main()

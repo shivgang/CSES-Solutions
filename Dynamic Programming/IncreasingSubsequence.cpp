@@ -87,35 +87,42 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
 
-    int dp[n+1][m+1] = {0};
+// O(N*N) after memorization
+// int lis(vector<int> &nums,int index,int prev){
+//     if(index == nums.size())    return 0;
 
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
-        }
-    }
-    return dp[n][m];
-}
+//     int notIncluded = lis(nums,index+1,prev);
+
+//     int included = 0;
+//     if(prev==-1 || nums[prev] <= nums[index]){
+//         included = 1 + lis(nums,index+1,index);
+//     }
+
+//     return max(included,notIncluded);
+// }
+
 
 void solve() {
-    int n, m;
-    cin >> n >> m;
+    int n;
+    cin >> n ;
     
-    int cuts = findMinCuts(n,m);
+    vector<int> nums(n);
+    for(int i=0;i<n;i++)    cin>>nums[i];
 
-    cout<<cuts<<endl;
+    int result = 1;
+    vector<int> res;
+    for(int i=0;i<n;i++){
+        int index = lower_bound(res.begin(),res.end(),nums[i]) - res.begin();
+        if(index==res.size()){
+            res.push_back(nums[i]);
+        }else{
+            res[index] = nums[i];
+        }
+        result = max(result,index+1);
+    }
+
+    cout << result << endl;
 }
 
 int32_t main()

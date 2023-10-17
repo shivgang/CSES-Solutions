@@ -87,36 +87,124 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
+void fillDistance(vector<string> &matrix,vector<vector<int>> &distance){
+    int n = matrix.size() , m = matrix[0].size();
 
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
+    queue<pair<int,int>> q;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if(matrix[i][j]=='M'){
+                q.push({i,j});
+                distance[i][j] = 0;
             }
         }
     }
-    return dp[n][m];
+
+    while(!q.empty()){
+        auto front = q.front();q.pop();
+        int i = front.first;
+        int j = front.second;
+
+        for(int k=0;k<4;k++){
+            int newx = i + dx[k];
+            int newy = j + dy[k];
+            if(newx>=0 && newx<n && newy>=0 && newy<m && matrix[newx][newy]!='#' && distance[newx][newy]==INT_MAX){
+                distance[newx][newy] = distance[i][j] + 1;
+                q.push({newx,newy});
+            }
+        }
+    }
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<string> matrix(n);
+    for(int i=0;i<n;i++){
+        cin >> matrix[i];
+    }
 
-    cout<<cuts<<endl;
+    vector<vector<int>> distance(n,vector<int>(m,INT_MAX));
+    fillDistance(matrix,distance);
+
+    queue<pair<int,int>> q;
+    int startx , starty;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if(matrix[i][j]=='A'){
+                startx = i;
+                starty = j;
+                q.push({i,j});
+                break;
+            }
+        }
+        if(!q.empty())  break;
+    }
+
+    int timer = 1;
+    pair<int,int> end={-1,-1};
+    vector<vector<int>> moves(n,vector<int>(m,-1));
+    vector<vector<bool>> visited(n,vector<bool>(m,false));
+    visited[startx][starty] = true;
+    while(!q.empty()){
+        int size = q.size();
+        for(int x=0;x<size;x++){
+            auto front = q.front(); q.pop();
+            int i = front.first;
+            int j = front.second;
+
+            if(i==(n-1) || j==(m-1) || (i==0) || (j==0)){
+                end = {i,j};
+                break;
+            }
+
+            for(int k=0;k<4;k++){
+                int newx = i + dx[k];
+                int newy = j + dy[k];
+                if(newx>=0 && newx<n && newy>=0 && newy<m && matrix[newx][newy]!='#' && timer < distance[newx][newy] && !visited[newx][newy]){
+                    visited[newx][newy] = true;
+                    moves[newx][newy] = k;
+                    q.push({newx,newy});
+                }
+            }
+        }
+        timer++;
+        if(end.first!=-1)   break;        
+    }
+
+    if(end.first==-1){
+        cout<<"NO"<<endl;
+        return;
+    }
+    
+    string result;
+    int i = end.first , j = end.second;
+    while((i!=startx || j!=starty)){
+        int k = moves[i][j];
+        if(k==0){   
+            result += 'U';
+            i++;
+        }else if(k==1){
+            result += 'D';
+            i--;
+        }else if(k==2){
+            result += 'L';
+            j++;
+        }else{
+            result+='R';
+            j--;
+        }
+        
+    }
+    reverse(result.begin(),result.end());
+    cout<<"YES"<<endl;
+    cout<<result.size()<<endl;
+    cout << result << endl;
+
 }
+// vector<int> dx={-1,1,0,0};	
+// vector<int> dy={0,0,-1,1};
 
 int32_t main()
 {

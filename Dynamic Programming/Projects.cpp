@@ -87,35 +87,53 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
+int dp[int32_t(2e5+1)];
+int findIndex(vector<vector<int>> &nums,int index){
+    int last = nums[index][1];
 
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
+    int ans = nums.size();
+    int low = index + 1 , high = nums.size() - 1;
+    while( low <= high ){
+        int mid = low + (high-low)/2;
+        if(last < nums[mid][0]){
+            ans = mid;
+            high = mid - 1;
+        }else{
+            low = mid + 1;
         }
     }
-    return dp[n][m];
+
+    return ans;
+}
+
+int findProfit(vector<vector<int>> &nums,int index){
+    if(index == nums.size())    
+        return 0;
+
+    if(dp[index]!=-1)   return dp[index];
+    int notIncluded = findProfit(nums,index+1);
+
+    int next = findIndex(nums,index);
+    int included = nums[index][2] + findProfit(nums,next);
+
+    return dp[index] = max(included,notIncluded);
 }
 
 void solve() {
-    int n, m;
-    cin >> n >> m;
+    int n;
+    cin >> n;
     
-    int cuts = findMinCuts(n,m);
+    
+    vector<vector<int>> nums(n,vector<int>(3));
+    for(int i=0;i<n;i++){
+        for(int j=0;j<3;j++)    cin>>nums[i][j];
+    }
 
-    cout<<cuts<<endl;
+    memset(dp,-1,sizeof(dp));
+    sort(nums.begin(),nums.end());
+    int maxprofit = findProfit(nums,0);
+
+    cout << maxprofit << endl;
 }
 
 int32_t main()

@@ -87,35 +87,55 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
-
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
-        }
-    }
-    return dp[n][m];
-}
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<vector<int>> graph(n+1);
+    for(int i=0;i<m;i++){
+        int a , b ;
+        cin >> a >> b;
+        graph[a].push_back(b);
+        graph[b].push_back(a);
+    }
 
-    cout<<cuts<<endl;
+    vector<int> visited(n+1,0);
+    queue<int> q;
+
+    q.push(1);
+    visited[1] = -1;
+    while(!q.empty()){
+        int node = q.front();
+        q.pop();
+        if(node==n) break;
+
+        for(auto neighbour:graph[node]){
+            if(visited[neighbour]==0){
+                visited[neighbour] = node;
+                q.push(neighbour);
+            }
+        }
+    }
+
+    if(visited[n]==0){
+        cout << "IMPOSSIBLE" << endl;
+        return;
+    }
+
+    vector<int> result = {n};
+    int node = n;
+    while(node!=1){
+        result.push_back(visited[node]);
+        node = visited[node];
+    }   
+
+    reverse(result.begin(),result.end());
+    cout << result.size() << endl;
+    for(auto x:result){
+        cout<<x<<" ";
+    }cout<<endl;
+
 }
 
 int32_t main()

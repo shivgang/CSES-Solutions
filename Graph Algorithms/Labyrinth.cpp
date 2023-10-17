@@ -70,8 +70,6 @@ int kmp(string haystack, string needle) {int n = haystack.size();int m = needle.
 
 int rabinKarp(string source, string target) { int n = source.size() , m = target.size(); int d = 31; int q = int32_t(1e9+7); int preCompute = 1; for(int i=1;i<m;i++){ preCompute *= d ; preCompute %= q; } int hsource = 0 , htarget = 0; for(int i=0;i<m;i++){ hsource  = (hsource*d + source[i])%q; htarget  = (htarget*d + target[i])%q; } if(hsource == htarget && source.substr(0,m)==target)    return 0;     for(int i=m;i<n;i++){ hsource = (hsource - preCompute*source[i-m])%q; hsource = (hsource*d + source[i])%q; if(hsource<0)    hsource+=q; if(hsource==htarget && source.substr(i-m+1,m)==target)  return i - m + 1; } return -1; }
 
-bool check(vector<vector<bool>> &grid,int i,int j){ if(i>=0 && i<grid.size() && j>=0 && j<grid[0].size() && !grid[i][j]) return true; return false; }
-
 vector<int> dx={-1,1,0,0};	vector<int> dy={0,0,-1,1};
 
 void printMatrix(vector<vector<int>> &matrix){ for(auto x:matrix){ for(auto y:x){ cout<<y<<" "; } cout<<endl;}}
@@ -87,35 +85,95 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
-
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
-        }
-    }
-    return dp[n][m];
+bool check(vector<string> &matrix,vector<vector<bool>> &visited,int i,int j){ 
+    if(i>=0 && i<matrix.size() && j>=0 && j<matrix[0].size() && matrix[i][j]!='#' && !visited[i][j]) 
+        return true; 
+    return false; 
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<string> matrix(n);
+    for(int i=0;i<n;i++)    cin>>matrix[i];
 
-    cout<<cuts<<endl;
+    int sx,sy,ex,ey;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if(matrix[i][j]=='A'){
+                sx = i;
+                sy = j;
+            }
+            if(matrix[i][j]=='B'){
+                ex = i;
+                ey = j;
+            }
+        }
+    }
+
+    queue< pair<int,int> > q;
+    vector<vector<bool>> visited(n,vector<bool>(m,false));
+    vector<vector<int>> move(n,vector<int>(m,0));
+
+    q.push({sx,sy});
+    visited[sx][sy] = true;
+    while(!q.empty()){
+        auto front = q.front();q.pop();
+        int i = front.first;
+        int j = front.second;
+        
+        if(i==ex && j==ey){
+            break;
+        }
+        
+        if(check(matrix,visited,i+1,j)){
+            q.push({i+1,j});
+            visited[i+1][j] = true;
+            move[i+1][j] = 2;
+        }
+        if(check(matrix,visited,i-1,j)){
+            q.push({i-1,j});
+            visited[i-1][j] = true;
+            move[i-1][j] = 4;
+        }
+        if(check(matrix,visited,i,j+1)){
+            q.push({i,j+1});   
+            visited[i][j+1] = true;
+            move[i][j+1] = 1;
+        }
+        if(check(matrix,visited,i,j-1)){
+            q.push({i,j-1});
+            visited[i][j-1] = true;
+            move[i][j-1] = 3;
+        }  
+    }
+    if(!visited[ex][ey]){
+        cout<<"NO"<<endl;
+        return;
+    }
+    
+    cout<<"YES"<<endl;
+    int i = ex , j = ey;
+    string result;
+    while(i!=sx || j!=sy){
+        if(move[i][j]==4){
+            i++;
+            result += 'U';
+        }else if(move[i][j]==3){
+            j++;
+            result += 'L';
+        }else if(move[i][j]==2){
+            i--;
+            result += 'D';
+        }else {
+            j--;
+            result += 'R';
+        }
+    }
+    reverse(result.begin(),result.end());
+    cout<<result.size()<<endl;
+    cout<<result<<endl;
 }
 
 int32_t main()

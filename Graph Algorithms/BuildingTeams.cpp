@@ -87,35 +87,48 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
-
-    int dp[n+1][m+1] = {0};
-
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
-            }
-        }
+bool dfs(vector<vector<int>> &graph,vector<int> &visited,int node,int color){
+    visited[node] = color;
+    for(auto neighbour:graph[node]){
+        if(visited[neighbour]==-1){
+            if(!dfs(graph,visited,neighbour,color^1))
+                return false;
+        }else if(visited[neighbour]==color)
+            return false;
     }
-    return dp[n][m];
+
+    return true;
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<vector<int>> graph(n+1);
+    for(int i=0;i<m;i++){
+        int a , b;
+        cin >> a >> b;
+        graph[a].push_back(b);
+        graph[b].push_back(a);
+    }
+    
+    vector<int> visited(n+1,-1);
+    for(int i=1;i<=n;i++){
+        if(visited[i]==-1){
+            if(!dfs(graph,visited,i,0)){
+                cout <<"IMPOSSIBLE"<<endl;
+                return;
+            }
+                
+        }
+            
+    }
 
-    cout<<cuts<<endl;
+    for(int i=1;i<=n;i++){
+        cout<<visited[i]+1<<" ";
+    }cout<<endl;
+    
+
 }
 
 int32_t main()

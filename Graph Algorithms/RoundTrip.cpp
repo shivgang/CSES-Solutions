@@ -21,6 +21,7 @@ using namespace std;
 #define mii            map <int, int>
 #define mpi            map <pii, int>
 #define spi            set <pii>
+#define fi(n)          for(int i=0;i<n;i++)
 #define endl           "\n"
 #define sz(x)          ((int) x.size())
 #define all(p)         p.begin(), p.end()
@@ -87,35 +88,59 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
+bool cycle(vector<vector<int>> &graph,bool* visited,vector<int> &parent,int node){
 
-    int dp[n+1][m+1] = {0};
+    visited[node] = true;
 
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
+    for(auto neighbour:graph[node]){
+        if(!visited[neighbour]){
+            parent[neighbour] = node;
+            if(cycle(graph,visited,parent,neighbour))
+                return true;
+        }
+        else if(parent[node]!=neighbour){
+
+            int start = node;
+            int end = neighbour;
+
+            vector<int> res = {start};
+            while(start!=end){
+                start = parent[start];
+                res.push_back(start);
             }
+            res.push_back(node);
+            cout<<res.size()<<endl;
+            print(res);
+            
+            return true;
         }
     }
-    return dp[n][m];
+    return false;
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
     
-    int cuts = findMinCuts(n,m);
+    vector<vector<int>> graph(n+1);
+    for(int i=0;i<m;i++){
+        int a , b;
+        cin >> a >> b;
+        graph[a].push_back(b);
+        graph[b].push_back(a);
+    }
 
-    cout<<cuts<<endl;
+    bool* visited = new bool[n+1]{false};
+    vector<int> parent(n+1,-1);
+    fi(n){
+        if(!visited[i+1]){
+            if(cycle(graph,visited,parent,i)){
+                return;
+            }
+        }
+    }
+
+    cout << "IMPOSSIBLE" <<endl;
 }
 
 int32_t main()

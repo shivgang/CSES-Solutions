@@ -87,35 +87,69 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-int findMinCuts(int n,int m){
+// int findRides(vector<int> &weights,int maxWeight,int mask,int weightLeft){
+//     // cout<<mask<<endl;    
+//     int n = weights.size();
+//     if(mask == ((1<<n)-1))    
+//         return 0;
+    
+//     int result = INT_MAX;
+//     for(int i=0;i<n;i++){
+//         if((mask & (1<<i))==0) {
+//             if(weightLeft >= weights[i]){
+//                 result = min( result, findRides(weights,maxWeight,(mask | (1<<i)),weightLeft - weights[i]));
+//             }else{
+//                 result = min( result, 1 + findRides(weights,maxWeight,(mask | (1<<i)),maxWeight - weights[i]));
+//             }
+//         }        
+//     }
+//     return result;
+// }
 
-    int dp[n+1][m+1] = {0};
 
-    for(int i=1;i<=n;i++){
-        for(int j=1;j<=m;j++){
-            if(i==j)    dp[i][j] = 0;
-            else{
-                int result =  1e8;
-                for(int k=1;k<i;k++){       // horizontal cut
-                    result = min( (int)result , (int)(dp[i-k][j]+dp[k][j] + 1));
-                }
-                for(int k=1;k<j;k++){       // vertical cut
-                    result = min( (int)result , (int)(dp[i][j-k]+dp[i][k] + 1));
-                }
-                dp[i][j] = result;
+pair<int,int> findRides(vector<int> &weights,int maxWeight,int mask,vector<pair<int,int>> &dp){
+    // cout<<mask<<endl;    
+    int n = weights.size();
+    if(mask == ((1<<n)-1))    
+        return {0,0};
+    
+    if(dp[mask].first!=-1)       return dp[mask];
+    
+    int result = INT_MAX;
+    int remainingWeight = 0;
+    for(int i=0;i<n;i++){
+        if((mask & (1<<i))==0) {
+            auto next = findRides(weights,maxWeight,(mask | (1<<i)),dp);   //  rides required and weight left for next recursive calls
+            int temp = next.first;
+            int weightleft = next.second;                   
+
+            if(weightleft >= weights[i]){       // if we can include the current weight to the next recursive call
+                weightleft -= weights[i];
+            }else{              // if we dont then new ride will start hence we increase the temp rides when including the current 
+                                // element and  now for new ride the current weight will become maxWeight - weight of current person
+                weightleft = maxWeight - weights[i];
+                temp++;
             }
-        }
+
+            if(temp < result || (temp==result && weightleft>remainingWeight)){
+                remainingWeight = weightleft;
+                result = temp;
+            }
+        }        
     }
-    return dp[n][m];
+    return  dp[mask] = {result,remainingWeight};
 }
 
 void solve() {
     int n, m;
     cin >> n >> m;
-    
-    int cuts = findMinCuts(n,m);
 
-    cout<<cuts<<endl;
+    vector<int>  weights(n);
+    for(int i=0;i<n;i++)    cin>>weights[i];
+
+    vector<pair<int,int>> dp((1<<n),{-1,-1});
+    auto rides = findRides(weights,m,0,dp);
+    cout<<rides.first<<endl;
 }
 
 int32_t main()
