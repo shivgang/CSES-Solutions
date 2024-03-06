@@ -78,6 +78,8 @@ void printMatrix(vector<vector<int>> &matrix){ for(auto x:matrix){ for(auto y:x)
 
 double logb(int a,int b){ return (double)log2(a)/ (double) log2(b);}
 
+// vector<int> rotatedIs = { i, n-1-j, n-1-i , j};
+// vector<int> rotatedJs = { j, i    , n-1-j, n-1-i};
 template <typename Arg1>
 void __f (const char* name, Arg1&& arg1) { cout << name << " : " << arg1 << endl; }
 template <typename Arg1, typename... Args>
@@ -87,102 +89,58 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-
-// TLE on testcase 18
-// bool cmp(const vector<int> &a,const vector<int> &b){
-//     return (a[0]-(a[2]/2)) > (b[0]-(b[2]/2));
-// }
-
-// void solve() {
-//     int n, m;
-//     cin >> n >> m;
+// 0 - > not included
+// 1 - > for notIncluded
+vector < vector <int> > dp;
+int findMatchingSets (vector < vector <int> > &graph , int par , int node , bool included){
     
-//     vector<vector<pair<int,int>>> graph(n+1);
-//     for(int i=0;i<m;i++){
-//         int u , v , weight;
-//         cin >> u >> v >> weight;
-//         graph[u].push_back({v,weight});
-//     }
+    if( dp [node][included] != -1 )
+        return dp [node][included];
 
-//     vector<pair<int,int>> distance(n+1,{LLONG_MAX,0});
-//     priority_queue<vector<int>,vector<vector<int>>,decltype(&cmp)> pq(cmp);
-//     // priority_queue<vector<int>,vector<vector<int>>,greater<vector<int>>> pq;
-//     int result = LLONG_MAX;
-//     pq.push({0,1,0});
-//     distance[1] = {0,0};
-//     while(!pq.empty()){
-//         auto front = pq.top();
-//         pq.pop();
+    int count = 0;
+    if(included){
 
-//         int dist = front[0];
-//         int node = front[1];
-//         int maxi = front[2];
+        int combinations = 0;
+        for( auto neighbour : graph [node] ){       // precomputing all combinations and then subtracting the current edge taken to
+            if(neighbour != par)                  // to be included and calculating their max
+                combinations += findMatchingSets (graph,node,neighbour,true);
+        }
 
-//         if(node==n){
-//             maxi = maxi/2 + maxi%2;
-//             result = min(result,(dist - maxi));
-//             break;
-//         }
+        for( auto neighbour : graph [node] ){
+            if(neighbour != par)
+                count = max( count, combinations - findMatchingSets (graph,node,neighbour,true) + 1 + 
+                            findMatchingSets (graph,node,neighbour,false));
+                // count = max( count, combinations - dp[neighbour][1] + 1 + findMatchingSets (graph,node,neighbour,false));
+        }
+        
+    }else{
+        for( auto neighbour : graph [node] ){
+            if(neighbour != par)
+                count += findMatchingSets (graph,node,neighbour,true);
+        }
+    }
 
-//         for(auto pair:graph[node]){
-//             int neighbour = pair.first;
-//             int weight = pair.second;
-
-//             if(weight + dist < distance[neighbour].first || maxi>distance[neighbour].second){
-//                 distance[neighbour].first = min(distance[neighbour].first,weight + dist);
-//                 distance[neighbour].second = max(distance[neighbour].second,maxi);
-//                 pq.push({dist+weight,neighbour,max(maxi,weight)});
-//             }
-//         }
-
-//     }
-
-//     cout << result << endl;
-// }
+    return dp [node] [included] = count;
+}
 
 void solve() {
-    int n, m;
-    cin >> n >> m;
+    int n ;
+    cin >> n ;
     
-    vector<vector<pair<int,int>>> graph(n+1);
-    for(int i=0;i<m;i++){
-        int u , v , weight;
-        cin >> u >> v >> weight;
-        graph[u].push_back({v,weight});
+    vector < vector <int> > graph( n + 1 );
+    for ( int i = 1 ; i < n ; i ++ ){
+        int a , b ;
+        cin >> a >> b ;
+        graph [a] . push_back (b);
+
+        graph [b] . push_back (a);
     }
 
-    vector<int> distance(n+1,LLONG_MAX);
-    priority_queue<vector<int>,vector<vector<int>>,greater<vector<int>>> pq;
-    int result = LLONG_MAX;
-    pq.push({0,1,0});
-    distance[1] = 0;
-    while(!pq.empty()){
-        auto front = pq.top();
-        pq.pop();
-
-        int dist = front[0];
-        int node = front[1];
-        int maxi = front[2];
-
-        if(node==n){
-            maxi = maxi/2 + maxi%2;
-            result = min(result,(dist - maxi));
-            break;
-        }
-
-        for(auto pair:graph[node]){
-            int neighbour = pair.first;
-            int weight = pair.second;
-
-            if(weight + dist < distance[neighbour] ){
-                distance[neighbour] = weight + dist;
-                pq.push({dist+weight,neighbour,max(maxi,weight)});
-            }
-        }
-
-    }
-
-    cout << result << endl;
+    dp.resize( n + 1 , vector <int> ( 2 , - 1));
+    bool* visited = new bool [n+1] {false};
+    
+    int matchingSets = max (findMatchingSets(graph , -1 , 1 , 1) , findMatchingSets(graph , -1 , 1 , 0) );
+    cout << matchingSets << endl;
 }
 
 int32_t main()

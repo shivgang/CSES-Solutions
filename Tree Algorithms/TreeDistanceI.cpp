@@ -78,6 +78,8 @@ void printMatrix(vector<vector<int>> &matrix){ for(auto x:matrix){ for(auto y:x)
 
 double logb(int a,int b){ return (double)log2(a)/ (double) log2(b);}
 
+// vector<int> rotatedIs = { i, n-1-j, n-1-i , j};
+// vector<int> rotatedJs = { j, i    , n-1-j, n-1-i};
 template <typename Arg1>
 void __f (const char* name, Arg1&& arg1) { cout << name << " : " << arg1 << endl; }
 template <typename Arg1, typename... Args>
@@ -87,102 +89,100 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
-
-// TLE on testcase 18
-// bool cmp(const vector<int> &a,const vector<int> &b){
-//     return (a[0]-(a[2]/2)) > (b[0]-(b[2]/2));
-// }
-
-// void solve() {
-//     int n, m;
-//     cin >> n >> m;
+void findDistance(vector < vector <int> > &graph , vector <int> &distance , int node , int parent , int dist){
     
-//     vector<vector<pair<int,int>>> graph(n+1);
-//     for(int i=0;i<m;i++){
-//         int u , v , weight;
-//         cin >> u >> v >> weight;
-//         graph[u].push_back({v,weight});
-//     }
-
-//     vector<pair<int,int>> distance(n+1,{LLONG_MAX,0});
-//     priority_queue<vector<int>,vector<vector<int>>,decltype(&cmp)> pq(cmp);
-//     // priority_queue<vector<int>,vector<vector<int>>,greater<vector<int>>> pq;
-//     int result = LLONG_MAX;
-//     pq.push({0,1,0});
-//     distance[1] = {0,0};
-//     while(!pq.empty()){
-//         auto front = pq.top();
-//         pq.pop();
-
-//         int dist = front[0];
-//         int node = front[1];
-//         int maxi = front[2];
-
-//         if(node==n){
-//             maxi = maxi/2 + maxi%2;
-//             result = min(result,(dist - maxi));
-//             break;
-//         }
-
-//         for(auto pair:graph[node]){
-//             int neighbour = pair.first;
-//             int weight = pair.second;
-
-//             if(weight + dist < distance[neighbour].first || maxi>distance[neighbour].second){
-//                 distance[neighbour].first = min(distance[neighbour].first,weight + dist);
-//                 distance[neighbour].second = max(distance[neighbour].second,maxi);
-//                 pq.push({dist+weight,neighbour,max(maxi,weight)});
-//             }
-//         }
-
-//     }
-
-//     cout << result << endl;
-// }
-
-void solve() {
-    int n, m;
-    cin >> n >> m;
-    
-    vector<vector<pair<int,int>>> graph(n+1);
-    for(int i=0;i<m;i++){
-        int u , v , weight;
-        cin >> u >> v >> weight;
-        graph[u].push_back({v,weight});
-    }
-
-    vector<int> distance(n+1,LLONG_MAX);
-    priority_queue<vector<int>,vector<vector<int>>,greater<vector<int>>> pq;
-    int result = LLONG_MAX;
-    pq.push({0,1,0});
-    distance[1] = 0;
-    while(!pq.empty()){
-        auto front = pq.top();
-        pq.pop();
-
-        int dist = front[0];
-        int node = front[1];
-        int maxi = front[2];
-
-        if(node==n){
-            maxi = maxi/2 + maxi%2;
-            result = min(result,(dist - maxi));
-            break;
+    distance[node] = dist;
+    for ( auto neighbour : graph [node]){
+        if (neighbour != parent){
+            findDistance( graph , distance , neighbour , node , dist + 1);   
         }
+    }
+}
 
-        for(auto pair:graph[node]){
-            int neighbour = pair.first;
-            int weight = pair.second;
+// void findDistance(vector < vector <int> > &graph ,vector <int> &result , vector <int> &depth , int node , int parent ){
+//     for ( auto neighbour : graph [node]){
+//         if (neighbour != parent){
+//             cout <<node <<" "<<neighbour <<" "<< depth[node] <<" "<< depth[neighbour] << endl;
+//             result[neighbour] = depth[neighbour];        
+//             int previous = depth[neighbour];
+//             depth[node] -= depth[neighbour];
+//             depth[neighbour] += depth[node] +1 ;
+//             result[neighbour] = max (result[neighbour] , depth[neighbour]);
+//             cout <<node <<" "<<neighbour <<" "<< depth[node] <<" "<< depth[neighbour] << endl;
+//             findDistance( graph , result , depth , neighbour , node );
+//             cout << " - >"<<endl;
+//             cout <<node <<" "<<neighbour <<" "<< depth[node] <<" "<< depth[neighbour] << endl;
+//             depth[neighbour] -= (depth[node] + 1);
+//             depth[node] += depth[neighbour];
+//             cout <<node <<" "<<neighbour <<" "<< depth[node] <<" "<< depth[neighbour] << endl;
+//         }
+//     }
+// }
 
-            if(weight + dist < distance[neighbour] ){
-                distance[neighbour] = weight + dist;
-                pq.push({dist+weight,neighbour,max(maxi,weight)});
+
+int bfs(vector < vector <int> > &graph , int node ){
+    
+    queue < pair <int , int>> q;
+
+    q.push({node , -1});
+    int temp = -1;
+
+    while(!q.empty()){
+
+        int size = q.size();
+        for( int i = 0; i < size ; i++){
+
+            node = q.front().first ; 
+            int parent = q.front().second ; q.pop();
+
+            temp = node;
+
+            for( auto neighbour : graph[node] ){
+                if(neighbour != parent){
+                    q.push({neighbour , node});
+                }
             }
         }
-
     }
 
-    cout << result << endl;
+    return temp;
+}
+
+void solve() {
+    int n ;
+    cin >> n ;
+    
+    vector < vector <int> > graph( n + 1 );
+    for ( int i = 1 ; i < n ; i ++ ){
+        int a , b ;
+        cin >> a >> b ;
+        graph [a] . push_back (b);
+        graph [b] . push_back (a);
+    }
+    
+    int first = bfs ( graph , 1);
+    int second = bfs (graph , first);
+
+    vector< int > distance1( n+1) , distance2( n + 1);
+    findDistance( graph , distance1 , first , -1 , 0);
+    findDistance( graph , distance2 , second , -1 , 0);
+
+    vector < int > result ( n + 1) ;
+    for( int i = 1; i <= n ; i++ ) {
+        result [i] = max ( distance1[i] , distance2[i] );
+    }
+
+    for(int i = 1; i <= n ; i++){
+        cout<< result[i] <<" ";
+    }cout << endl;
+
+    // vector <int> depth( n + 1 ) 
+    // findDepth(graph , depth , 1 , -1);
+    // vector <int> result ( n + 1 ) ;
+    // findDistance(graph , result , depth , 1 , -1);
+    // for ( int i  = 1 ; i <= n ; i++ ){
+    //     cout << result [i] << " ";
+    // } cout << endl ;
 }
 
 int32_t main()

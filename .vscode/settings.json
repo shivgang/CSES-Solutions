@@ -4,6 +4,9 @@
         "ostream": "cpp",
         "vector": "cpp",
         "utility": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "xstddef": "cpp",
+        "random": "cpp",
+        "queue": "cpp"
     }
 }
