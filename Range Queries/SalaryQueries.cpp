@@ -4,6 +4,9 @@
 */
 
 #include<bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp> // Common file
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds;
 using namespace std;
 
 
@@ -36,6 +39,12 @@ using namespace std;
 #define PI   3.1415926535897932384626433832795
 
 #define MOD             int32_t(1e9+7)
+template <class T> using ordered_set = tree<T, null_type, less<T>, rb_tree_tag,tree_order_statistics_node_update>;
+template <class T> using ordered_multi_set = tree<T, null_type, less_equal<T>, rb_tree_tag,tree_order_statistics_node_update>;
+// #define ordered_set tree<int, null_type, less<int>, rb_tree_tag,tree_order_statistics_node_update>
+// #define ordered_pair_set tree<pair <int , int>, null_type, less<pair <int , int>>, rb_tree_tag,tree_order_statistics_node_update>
+// #define ordered_multiset tree<int , null_type ,  less_equal<int> , rb_tree_tag , tree_order_statistics_node_update> ordered_multiset
+    
 const  int N = 2e5+7;
 
 inline int power(int x,int y){ int ans=1; while(y){ if(y&1) ans=(ans*x)%MOD; x=(x*x)%MOD; y>>=1;} return ans;}
@@ -90,62 +99,82 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
 }
 
 
+class SegemntTree{
+    vector<int> sumNodes;
+    vector<int> A;
+    int n;
+public:
+    SegemntTree(int n){
+        this -> n = n;
+        sumNodes.resize (4 * n);
+    }
+
+    void update(int index,int value,int l,int r,int node){
+        if(l==r){
+            sumNodes[node] += value;
+            return;
+        }
+        int mid = l + (r-l) /2;
+        if(index<=mid)      update(index,value,l,mid,2*node);
+        else        update(index,value,mid+1,r,2*node+1);
+
+        sumNodes[node] = sumNodes[2*node] + sumNodes[2*node + 1];
+    }
+
+    int query(int queryL,int queryR,int l,int r,int node){
+        if(queryL>r || queryR<l)    return 0;
+        if(queryL<=l && queryR>=r)  return sumNodes[node];
+
+        int mid = l + (r-l) /2;
+        int leftSum = query(queryL,queryR,l,mid,2*node);
+        int rightSum = query(queryL,queryR,mid+1,r,2*node+1);
+
+        return leftSum + rightSum;
+    }
+
+    void printTree(){
+        for(int i=1;i<4*n;i++){
+            cout<<sumNodes[i]<<" ";
+        }cout<<endl;
+    }   
+};
+
+
 void solve() {
     int n , q;
     cin >> n >> q;
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+    vector <int> nums (n + 1);
+    ordered_set<pair <int , int> > set;
+    for(int i = 1 ; i <= n ; i++){
+        cin >> nums [i];
+        set.insert ({nums [i] , i});
     }
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
+    
+    while (q--){
+        char type;
+        cin >> type;
+        if(type == '?'){        // find employees in range
+            int a , b;
+            cin >> a >> b;
+            // here we will use find by order
+            auto it1 = set.order_of_key( { b , INT_MAX });
+            auto it2 = set.order_of_key( { a , 0 });
 
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
-    }
+            cout << it1 - it2 << endl ;
 
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
+        }else{
+            int k , x;
+            cin >> k >> x;
+
+            int prevSalary = nums [k];
+            auto it = set.find({nums [k] , k});        //  find here the iterator so that we can delete the value
+            set.erase (it);
+
+            nums [k] = x;
+            set.insert ({nums [k] , k});    // insert the new salary here
         }
-    }
-
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
-        cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
     }
 }
 

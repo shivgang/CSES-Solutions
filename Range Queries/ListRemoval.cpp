@@ -90,62 +90,81 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
 }
 
 
+class SegemntTree{
+    vector<int> sumNodes;
+    int n;
+public:
+    SegemntTree(int n){
+        this -> n = n;
+        sumNodes.resize(4*n);
+    }
+
+    void update(int index,int value,int l,int r,int node){
+        if(l==r){
+            sumNodes[node] += value;
+            return;
+        }
+
+        int mid = l + (r-l) /2;
+        if(index<=mid)      update(index,value,l,mid,2*node);
+        else        update(index,value,mid+1,r,2*node+1);
+
+        sumNodes[node] = sumNodes[2*node] + sumNodes[2*node + 1];
+    }
+
+    int query(int sum,int l,int r,int node){
+        // if(queryL>r || queryR<l)    return 0;
+        // if(queryL<=l && queryR>=r)  return sumNodes[node];
+        // int mid = l + (r-l) /2;
+        // int leftSum = query(queryL,queryR,l,mid,2*node);
+        // int rightSum = query(queryL,queryR,mid+1,r,2*node+1);
+        // return leftSum + rightSum;
+        if (l == r){
+            return l;
+        }
+        int mid = l + (r - l)/2;
+        if (sum > sumNodes [2 * node ]){  // move right
+            return query (sum - sumNodes [2*node], mid + 1 , r , 2 * node + 1);
+        }else{
+            return query (sum , l , mid , 2 * node);
+        }
+    }
+
+    void printTree(){
+        for(int i=1;i<4*n;i++){
+            cout<<sumNodes[i]<<" ";
+        }cout<<endl;
+    }   
+    void update(int index , int value){
+        update (index , value , 0 , n - 1, 1);
+    }
+    int query(int sum){
+        return query (sum , 0 , n - 1 , 1);
+    }
+};
+
+
 void solve() {
-    int n , q;
-    cin >> n >> q;
+    int n ;
+    cin >> n;
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+    SegemntTree segment ( n + 1 );
+    vector <int> nums (n + 1);
+    for(int i = 1 ; i <= n ; i++){
+        cin >> nums [i];
+        segment.update(i , 1);
     }
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
+    int size = n;
+    while(size--){
+        int pos;
+        cin >> pos;
 
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
-    }
+        int index = segment.query(pos);
 
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
-        }
-    }
+        segment.update(index , -1);
+        cout << nums [index] << " ";
 
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
-        cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
     }
 }
 

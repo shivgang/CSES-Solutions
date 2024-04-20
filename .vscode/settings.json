@@ -7,6 +7,9 @@
         "xutility": "cpp",
         "xstddef": "cpp",
         "random": "cpp",
-        "queue": "cpp"
-    }
+        "queue": "cpp",
+        "xiosbase": "cpp",
+        "regex": "cpp"
+    },
+    "C_Cpp.errorSquiggles": "enabled"
 }

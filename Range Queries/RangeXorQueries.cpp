@@ -94,58 +94,24 @@ void solve() {
     int n , q;
     cin >> n >> q;
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+    vector <int> nums (n + 1);
+    for(int i = 1 ; i <= n ; i++){
+        cin >> nums [i];
     }
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
-
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
+    vector <int> xorSum (n + 1);
+    for(int i = 1 ; i <= n ; i++){
+        xorSum[i] = nums [i] ^ xorSum [i - 1];
     }
-
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
-        }
-    }
-
-    int size = 0;
-    while ( q-- ){
+   
+    while(q--){
         int a , b ;
         cin >> a >> b;
 
+        int right = xorSum [b];
+        int left = xorSum [a - 1];
 
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
+        cout << (right ^ left) << endl;
     }
 }
 

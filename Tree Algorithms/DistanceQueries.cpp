@@ -89,18 +89,85 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
+void makeTree(const vector < vector <int> > &graph, vector <int> &parent , int node , int par){
+    for ( auto neighbour : graph [node]){
+        if ( neighbour != par ){
+            parent [neighbour] = node;
+            makeTree ( graph , parent , neighbour , node );
+        }
+    }
+}
 
 void solve() {
-    int n, m;
-    cin >> n >> m;
-    bug(n, m);
+    int n , q;
+    cin >> n >> q;
+    
+    vector < vector <int> > graph ( n + 1 );
+    for ( int i = 1 ; i < n ; i++ ){
+        int u , v ;
+        cin >> u >> v;
+        graph [u] . push_back(v);   graph [v] . push_back(u);
+    }
+
+    vector <int> parent (n + 1);    parent [1] = -1;
+    makeTree (graph , parent , 1 , -1);
+
+    vector <vector <int>> up (32 , vector <int> (n + 1));
+    vector < int > depth ( n + 1 );
+    up [0] [1] = 1;
+    for ( int i = 2 ; i<= n ; i++ ) {
+        up [0][i] = parent [i];
+    }
+
+    for ( int i = 1 ; i < 32 ; i++){
+        for ( int j = 1 ; j <= n ; j++ ){
+            if ( j != 1 )   depth [j] = depth [parent [j]] + 1;
+            up [i][j] = up [i-1][ up[i-1][j] ];
+        }
+    }
+
+    
+    while (q--){
+        int u , v;
+        cin >> u >> v;
+
+        int a = u , b = v;
+        
+        if ( depth [a] > depth [b] ){
+            swap (a,b);
+        }
+        int d = depth [b] - depth [a];
+
+        for ( int i = 0 ; i < 32 ; i++ ){
+            if ( ( 1 << i ) & d ){
+                b = up [ i ][b];
+            }
+        }
+
+        int lca ;
+        if ( a == b ){
+            lca = a;
+        }else{
+            for ( int i = 31 ; i >=0 ; i-- ){
+               if ( up [i][a] != up [i][b]){
+                    a = up [i][a];  
+                    b = up [i][b];
+                }
+            }
+            lca = up[0][a];
+        }
+
+        int len = (depth[u] - depth [lca]) + (depth [v] - depth [lca]);
+
+        cout << len << endl;
+    }
 }
 
 int32_t main()
 {
     ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
 // cout.precision(7); cout.setf(ios::fixed);
-#ifndef ONLINE_JUDGE
+#ifndef ONLINE_JUDGE    
     freopen("input.txt",  "r",  stdin);
     freopen("output.txt", "w", stdout);
 #endif

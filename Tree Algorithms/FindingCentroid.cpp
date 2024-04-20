@@ -89,64 +89,63 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
+vector <int> graph [200001];
+int nodes [200001];
+
+void dfs (int node , int parent){
+    nodes [node]++;
+    for(auto neighbour : graph [node]){
+        if (neighbour != parent){
+            dfs (neighbour , node);
+            nodes [node] += nodes [neighbour];
+        }
+    }
+}
+void dfs2 (int node , int parent , int n , int &ans){
+    
+    bool found = true;
+    for(auto neighbour : graph [node]){
+        int temp = nodes [neighbour];
+        if (temp > (n / 2)){
+            found = false;
+        }
+    }
+    if (found){
+        ans = node;
+        return;
+    }
+    for(auto neighbour : graph [node]){
+        if (neighbour != parent){
+            nodes [node] -= nodes [neighbour];
+            nodes [neighbour] += nodes [node];
+        
+            dfs2(neighbour , node , n , ans);
+
+            nodes [neighbour] -= nodes [node];
+            nodes [node] += nodes [neighbour];
+        }
+    }
+}
 
 void solve() {
-    int n , q;
-    cin >> n >> q;
-    
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
-    }
+    int n ;
+    cin >> n;
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
-
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
-    }
-
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
-        }
-    }
-
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
+    for(int  i = 1 ; i < n ; i++){
+        int a , b;
         cin >> a >> b;
 
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
+        graph [a].push_back(b);
+        graph [b].push_back(a);
     }
+
+    memset(nodes , 0 , sizeof(nodes));
+    dfs (1 , -1);
+
+    int ans = -1;
+    dfs2 (1 , -1 , n , ans);
+
+    cout << ans << endl;
 }
 
 int32_t main()

@@ -94,58 +94,37 @@ void solve() {
     int n , q;
     cin >> n >> q;
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+    vector <string> forest ( n  );
+    for(int i = 0 ; i < n ; i++){
+        cin >> forest [i];
     }
-
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
-
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
-    }
-
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
-        }
-    }
-
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
-        cin >> a >> b;
+    
+    vector <vector <int>> matrix ( n + 1 , vector <int> (n + 1));
 
 
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
+    for(int i = 1 ; i <= n ; i++){
+        for(int j = 1 ; j <= n ; j++){
+            if (forest [i - 1][j - 1] == '*'){
+                matrix [i][j] = 1;
             }
+            matrix [i][j] += matrix [i][j - 1];
         }
+    }
 
-        if ( a == b ){
-            cout << a << endl;
-            continue;
+    for(int i = 1 ; i <= n ; i++){
+        for(int j = 1 ; j <= n ; j++){
+            matrix [i][j] += matrix [i-1][j];
         }
+    }
 
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
+    while (q--){
+        int x1 , y1 , x2 , y2;
+        cin >> x1 >> y1 >> x2 >> y2;
+        int right = matrix [x2][y2];
+        int up = matrix [x2][y1-1];
+        int left = matrix [x1-1][y2];
+        int diag = matrix [x1-1][y1-1];
+        cout << right - up - left + diag << endl;
     }
 }
 

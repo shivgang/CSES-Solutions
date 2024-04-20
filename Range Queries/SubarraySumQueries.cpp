@@ -89,64 +89,49 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
+class Node{
+public:
+    int sum;
+    int prefix;
+    int suffix;
+    int mid;
+    Node(){
+        sum = prefix = suffix = mid = 0;
+    }
+};
 
 void solve() {
-    int n , q;
+    int n, q;
     cin >> n >> q;
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+    vector <int> nums (n);
+    for(int i = 0 ; i < n ; i++){
+        cin >> nums [i];
     }
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
+    int blockSize = sqrt (n);
 
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
+    vector <Node> sum (blockSize + 1);
+    for(int i = 0 , blockIndex = -1; i < n ; i++){
+        if (i % blockSize == 0){
+            blockIndex++;
+        }
+        sum [blockIndex].sum += nums [i];
+        sum [blockIndex].prefix = max(sum [blockIndex].sum , sum [blockIndex].prefix);
+        sum [blockIndex].suffix =       
+
+        sum [blockIndex].mid = max (sum [blockIndex].mid , max (sum [blockIndex].prefix , sum [blockIndex].suffix));
     }
 
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
-        }
+    while (q--){
+        int k , x;
+        cin >> k >> x;
+
+
+
+
     }
 
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
-        cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
-    }
 }
 
 int32_t main()

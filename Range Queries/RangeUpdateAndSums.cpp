@@ -89,63 +89,185 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
 
+class SegmentTree{
+    vector <int> nodes ;
+    vector <int> lazy ;
+    vector <int> nums;
+    vector <int> setVal;
+
+    int n ;
+    void build(int low , int high , int node){
+        if (low == high){
+            nodes [node] = nums [low];
+            return;
+        }
+        int mid = low + (high - low) / 2;
+        build (low , mid , 2 * node);
+        build (mid + 1 , high , 2 * node + 1);
+
+        nodes [node] = nodes [2 * node] + nodes [2 * node + 1];
+    }
+    int query (int qlow , int qhigh , int l , int r , int node){
+        if (setVal [node] != 0){
+            nodes [node] = (r - l + 1) * setVal [node];
+            if (l != r){
+                lazy [2 * node] = 0 ;
+                lazy [2 * node + 1] = 0 ;
+                setVal [2 * node] = setVal [node];
+                setVal [2 * node + 1] = setVal [node];
+            }
+            setVal [node] = 0;
+        }
+        if ( lazy [node] != 0 ){
+            nodes [node] += (r - l + 1) * lazy [node];
+            if ( l != r ) {
+                lazy [2 * node] += lazy [node];
+                lazy [2 * node + 1] += lazy [node];
+            }
+            lazy [node] = 0;
+        }
+        if ( qlow > r || qhigh < l )  return 0;
+        if ( qlow <= l && r <= qhigh )    return nodes [node];
+
+        int mid = l + ( r - l )/2;
+        int left = query ( qlow , qhigh , l , mid , 2 * node );
+        int right = query ( qlow , qhigh , mid + 1 , r , 2 * node + 1 );
+        
+        return left + right ;
+    }
+
+    void update (int qlow , int qhigh , int val , int l , int r , int node){
+        if (setVal [node] != 0){
+            nodes [node] = (r - l + 1) * setVal [node];
+            if (l != r){
+                lazy [2 * node] = 0 ;
+                lazy [2 * node + 1] = 0 ;
+                setVal [2 * node] = setVal [node];
+                setVal [2 * node + 1] = setVal [node];
+            }
+            setVal [node] = 0;
+        }
+        if ( lazy [node] != 0 ){
+            nodes [node] +=  (r - l + 1) * lazy [node];
+            if ( l != r ) {
+                lazy [2 * node] += lazy [node];
+                lazy [2 * node + 1] += lazy [node];
+            }
+            lazy [node] = 0;
+        }
+        if ( qlow > r || qhigh < l )  return;
+        if ( qlow <= l && r <= qhigh ){
+            nodes [node] += (r - l + 1) * val;
+            
+            if ( l != r ) {
+                lazy [2 * node] += val ;
+                lazy [2 * node + 1] += val ;
+            }
+            return;
+        }
+        
+        int mid = l + ( r - l )/2;
+        
+        update ( qlow , qhigh , val , l , mid , 2 * node );
+        update ( qlow , qhigh , val , mid + 1 , r , 2 * node + 1 );
+        
+        nodes [node] = nodes [ 2 * node] + nodes [2 * node + 1];
+    }
+
+    void assign(int qlow , int qhigh , int val , int l , int r , int node){
+        if (setVal [node] != 0){
+            nodes [node] = (r - l + 1) * setVal [node];
+            if (l != r){
+                lazy [2 * node] = 0 ;
+                lazy [2 * node + 1] = 0 ;
+                setVal [2 * node] = setVal [node];
+                setVal [2 * node + 1] = setVal [node];
+            }
+            setVal [node] = 0;
+        }
+        if ( lazy [node] != 0 ){
+            nodes [node] +=  (r - l + 1) * lazy [node];            
+            if ( l != r ) {
+                lazy [2 * node] += lazy [node];
+                lazy [2 * node + 1] += lazy [node];
+            }
+            lazy [node] = 0;
+        }
+        if ( qlow > r || qhigh < l ){  
+            return;
+        }
+        if ( qlow <= l && r <= qhigh ){
+            nodes [node] = (r - l + 1) * val;
+
+            if ( l != r ) {
+                lazy [2 * node] = 0 ;
+                lazy [2 * node + 1] = 0 ;
+                setVal [2 * node] = val ;
+                setVal [2 * node + 1] = val ;
+            }
+            return;
+        }
+        
+        int mid = l + ( r - l )/2;
+        
+        assign ( qlow , qhigh , val , l , mid , 2 * node );
+        assign ( qlow , qhigh , val , mid + 1 , r , 2 * node + 1 );
+        
+        nodes [node] = nodes [ 2 * node] + nodes [2 * node + 1];
+    }
+public:
+    SegmentTree (const vector <int> &nums){
+        this -> nums = nums;
+        this -> n = nums.size ();
+        this -> lazy . resize ( 4 * n );
+        this -> nodes . resize ( 4 * n );
+        this -> setVal . resize (4 * n , 0);
+        build (0 , n - 1 , 1);
+    }
+    void update (int low , int high , int val){
+        update (low , high , val , 0 , n - 1 , 1 );
+    }
+    int query (int low , int high){
+        return query (low , high , 0 , n - 1 , 1 );
+    }
+    void printTree(){
+        for ( auto x : nodes ){
+            cout << x <<" ";
+        }cout << endl;
+    }
+    void assign(int low , int high , int val){
+        assign (low , high , val , 0 , n - 1 , 1);
+    }
+};
+
 
 void solve() {
     int n , q;
     cin >> n >> q;
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+    vector <int> nums (n + 1);
+    for(int i = 1 ; i <= n ; i++){
+        cin >> nums [i];
     }
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
+    SegmentTree segment (nums);
 
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
-    }
-
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
+    while(q--){
+        int type;
+        cin >> type;
+        if (type == 1){
+            int a , b , x;
+            cin >> a >> b >> x;
+            segment.update (a , b , x);
+        }else if (type == 2){
+            int a , b , x;
+            cin >> a >> b >> x;
+            segment.assign (a , b , x);
+        }else{
+            int a , b;
+            cin >> a >> b;
+            cout << segment.query (a , b) << endl;
         }
-    }
-
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
-        cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
     }
 }
 

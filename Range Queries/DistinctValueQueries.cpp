@@ -90,62 +90,86 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
 }
 
 
+class SegmentTree{
+    vector<int> nodes;
+    int n;
+public:
+    SegmentTree(int n){
+        this -> n = n;
+        nodes.resize(4*n);
+    }
+
+    void update(int index,int value,int l,int r,int node){
+        if(l==r){            
+            nodes[node] = value;
+            return;
+        }
+
+        int mid = l + (r-l) /2;
+        if(index<=mid)      update(index,value,l,mid,2*node);
+        else        update(index,value,mid+1,r,2*node+1);
+
+        nodes[node] = nodes[2*node] + nodes[2*node + 1];
+    }
+
+    int query(int queryL,int queryR,int l,int r,int node){
+        if(queryL>r || queryR<l)    return 0;
+        if(queryL<=l && queryR>=r)  return nodes[node];
+
+        int mid = l + (r-l) /2;
+        int leftSum = query(queryL,queryR,l,mid,2*node);
+        int rightSum = query(queryL,queryR,mid+1,r,2*node+1);
+
+        return leftSum + rightSum;
+    }
+
+    void printTree(){
+        for(int i=1;i<4*n;i++){
+            cout<<nodes[i]<<" ";
+        }cout<<endl;
+    }   
+    void update (int index , int val){
+        update (index , val , 0 , n - 1 , 1);
+    }
+    int query (int queryL , int queryR){
+        return query (queryL , queryR , 0 , n - 1 , 1);
+    }
+};
+vpi queries [N];
+int result [N];
+
 void solve() {
-    int n , q;
+    int n, q;
     cin >> n >> q;
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+    vector <int> nums (n + 1);
+    for(int i = 1 ; i <= n ; i++){
+        cin >> nums [i];
     }
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
-
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
+    
+    for(int i = 1 ; i <= q ; i++){
+        int a , b;
+        cin >> a >> b;      
+        queries [b].push_back ({a , i});
     }
 
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
+    SegmentTree segment (n + 1);
+    mii m;
+    for(int i = 1 ; i <= n ; i++){
+        segment.update (i , 1);
+        if (m.find (nums [i]) != m.end ()){
+            segment.update ( m [nums [i] ] , 0);
+        }
+        m [nums [i]] = i;
+        for(auto q : queries [i]){
+            int start = q.first , index = q.second;
+            result [index] = segment.query (start , i);
         }
     }
 
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
-        cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
+    for(int i = 1 ; i <= q ; i++){
+        cout << result [i] << endl;
     }
 }
 

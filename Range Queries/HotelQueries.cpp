@@ -90,62 +90,84 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
 }
 
 
-void solve() {
-    int n , q;
-    cin >> n >> q;
+class SegemntTree{
+    vector<int> maxNode;
+    vector<int> A;
+    int n;
+public:
+    SegemntTree(vector<int> A){
+        this->A=A;
+        n=A.size();
+        maxNode.resize(4*n);
+        build(1,0,n-1);
+    }
     
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
-    }
-
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
-
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
-    }
-
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
+    void build(int node,int l,int r){
+        if(l==r){
+            maxNode[node] = A[l];
+            return ;
         }
-    }
-
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
-        cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
+        int mid = l + (r-l)/2;
+        build(2*node,l,mid);
+        build(2*node+1,mid+1,r);
         
-        cout << up [0][b] << endl;
+        maxNode[node] = max (maxNode[2*node] , maxNode[2*node+1]);
+    }
+
+    void update(int index,int value,int l,int r,int node){
+        if(l==r){
+            A[index] = value;
+            maxNode[node] = value;
+            return;
+        }
+
+        int mid = l + (r-l) /2;
+        if(index<=mid)      update(index,value,l,mid,2*node);
+        else     update(index,value,mid+1,r,2*node+1);
+        maxNode[node] = max(maxNode[2*node] , maxNode[2*node + 1]);
+    }
+
+    int query(int l,int r,int node,int val){
+        int mid = l + (r-l) /2;
+        if (l == r){
+            return l;
+        }
+        if (maxNode [2 * node] >= val)  return query (l , mid , 2 * node , val);
+        return query (mid + 1, r , 2 * node + 1, val);        
+    }
+
+    void printTree(){
+        for(int i=1;i<4*n;i++){
+            cout<<maxNode[i]<<" ";
+        }cout<<endl;
+    } 
+    int maximumVal()  {
+        return maxNode [1];
+    }
+};
+
+void solve() {
+    int n , m;
+    cin >> n >> m;
+    
+    vector <int> hotels (n + 1);
+    for(int i = 1 ; i <= n ; i++){
+        cin >> hotels [i];
+    }
+
+    SegemntTree segment (hotels);
+    while (m--){
+        int r;
+        cin >> r;
+
+        if (segment.maximumVal () < r){
+            cout << 0 <<" ";
+        }else{
+            int index = segment.query (0 , n , 1 , r);
+            cout << index <<" ";
+            hotels [index] -= r;
+            segment.update(index , hotels [index] , 0 , n , 1);
+        }
     }
 }
 

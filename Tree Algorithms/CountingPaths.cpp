@@ -2,11 +2,11 @@
     ॐ त्र्यम्बकं यजामहे सुगन्धिं पुष्टिवर्धनम् |
     उर्वारुकमिव बन्धनान्मृत्योर्मुक्षीय माऽमृतात् ||
 */
-
+ 
 #include<bits/stdc++.h>
 using namespace std;
-
-
+ 
+ 
 #define ll             long long
 #define int	           long long int
 #define lu             long unsigned int32_t
@@ -34,26 +34,26 @@ using namespace std;
 #define sortv(a)       sort(a.begin(),a.end())
 #define sorta(a,n)       sort(a,a+n)
 #define PI   3.1415926535897932384626433832795
-
+ 
 #define MOD             int32_t(1e9+7)
 const  int N = 2e5+7;
-
+ 
 inline int power(int x,int y){ int ans=1; while(y){ if(y&1) ans=(ans*x)%MOD; x=(x*x)%MOD; y>>=1;} return ans;}
-
+ 
 inline int charToDigit(char ch){ return ch - '0'; }
 inline char digitToChar(int digit){ return digit +'0'; }
 string add(const string &a,const string &b){ int n = a.size() , m = b.size(); string s; int i = n-1 , j = m-1 , carry = 0; for(;i>=0 || j>=0;){ int number = carry; carry = 0; if (i>=0)   number += charToDigit(a[i--]); if (j>=0)   number += charToDigit(b[j--]); carry = number/10; number%=10; s+= digitToChar(number);	} if(carry>=1) s+=to_string(carry); reverse(s.begin(),s.end()); return s;}
-
+ 
 // multiplies a big int in the form of vector with a number
 void multiply(vector<int> &fact,int number,int &size){  int carry = 0;  for(int i=0;i<size;i++){ int prod = fact[i] * number + carry; fact[i] = prod%10; carry = prod/10; } while(carry){ fact[size] = carry%10; carry/=10; size++; } }
-
+ 
 // computes factorial of a number and prints
 void computeFactorial(int n){ vector<int> fact(1000,0); fact[0]=1; int size = 1; for(int i=2;i<=n;i++) multiply(fact,i,size);  for(int i=size-1;i>=0;i--)  cout<<fact[i];  cout<<endl;}
-
+ 
 vector<bool> sieve(int n){ vector<bool> prime(n+1,true); prime[0] = false;prime[1] = false; for(int i=2;i<=n;i++){ if(prime[i]){ for(int j=i*i;j<=n;j+=i) prime[j] = false; } }  return prime; }
 // performs binary multiplication and avoids overflow of multiplication of very big ints
 int binaryMultiplication(int a,int b,int mod){ int res = 0; while(b){ if(b&1) res = (res + a)%mod; a = (2*a)%mod; b>>=1; } return res; }
-
+ 
 int gcd(int a,int b){ if(a%b==0)  return b; return gcd(b,a%b); }
 void computelps(string s,int *lps){
     lps[0] = 0;     // lps of a single character is always 0
@@ -67,17 +67,17 @@ void computelps(string s,int *lps){
     }
 }   
 int kmp(string haystack, string needle) {int n = haystack.size();int m = needle.size();int *lps = new int[m]{0};computelps(needle,lps);int i = 0 , j = 0;while(n-i>=m-j){if(haystack[i] == needle[j]){i++;j++;if(j==m)    return i - m ;}else{if(j==0)    i++;else j = lps[j-1];}}return -1;}
-
+ 
 int rabinKarp(string source, string target) { int n = source.size() , m = target.size(); int d = 31; int q = int32_t(1e9+7); int preCompute = 1; for(int i=1;i<m;i++){ preCompute *= d ; preCompute %= q; } int hsource = 0 , htarget = 0; for(int i=0;i<m;i++){ hsource  = (hsource*d + source[i])%q; htarget  = (htarget*d + target[i])%q; } if(hsource == htarget && source.substr(0,m)==target)    return 0;     for(int i=m;i<n;i++){ hsource = (hsource - preCompute*source[i-m])%q; hsource = (hsource*d + source[i])%q; if(hsource<0)    hsource+=q; if(hsource==htarget && source.substr(i-m+1,m)==target)  return i - m + 1; } return -1; }
-
+ 
 bool check(vector<vector<bool>> &grid,int i,int j){ if(i>=0 && i<grid.size() && j>=0 && j<grid[0].size() && !grid[i][j]) return true; return false; }
-
+ 
 vector<int> dx={-1,1,0,0};	vector<int> dy={0,0,-1,1};
-
+ 
 void printMatrix(vector<vector<int>> &matrix){ for(auto x:matrix){ for(auto y:x){ cout<<y<<" "; } cout<<endl;}}
-
+ 
 double logb(int a,int b){ return (double)log2(a)/ (double) log2(b);}
-
+ 
 // vector<int> rotatedIs = { i, n-1-j, n-1-i , j};
 // vector<int> rotatedJs = { j, i    , n-1-j, n-1-i};
 template <typename Arg1>
@@ -88,67 +88,116 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
     const char* comma = strchr (names + 1, ',');
     cout.write (names, comma - names) << " : " << arg1 << " | "; __f (comma + 1, args...);
 }
-
-
-void solve() {
-    int n , q;
-    cin >> n >> q;
-    
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+ 
+vector<vector <int>> graph;
+vector <vector <int>>  up;
+vector <int> depth;
+void makeTree(vector <int> &parent , int node , int par){
+    for( auto neighbour : graph[node] ){
+        if (neighbour != par){
+            parent [neighbour] = node;
+            makeTree(parent , neighbour , node);
+        }
     }
-
+}
+ 
+void makeUPforLCA(const vector <int> &parent , int n){
     int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
-
+    up . resize( 32 , vector <int> ( n + 1 ));
+    depth . resize( n + 1  , 0);
+ 
     up [0][1] = 1;
     for ( int i = 2 ; i <= n ; i++ ){
         up [0] [i] = parent [i];
     }
-
+ 
     for ( int i = 1 ; i < MAX ; i++ ){
         for ( int j = 1 ; j <= n ; j++ ){
             if ( j != 1)    depth [j] = depth [parent [j]] + 1;
             up [i] [j] = up [i-1][ up [i-1][j]];
         }
     }
-
-    int size = 0;
-    while ( q-- ){
+ 
+    // making parent of 1 as 0
+    up [0][1] = 0;
+}
+ 
+int findLCA (int a , int b){
+ 
+    if ( depth [a] > depth [b] ){
+        swap (a,b);
+    }
+    int d = depth [b] - depth [a];
+ 
+    for ( int i = 0 ; i < 32 ; i++ ){
+        if ( ( 1 << i ) & d ){
+            b = up [ i ][b];
+        }
+    }
+ 
+    if ( a == b ){
+        return a;
+    }
+ 
+    for ( int i = 31 ; i >=0 ; i-- ){
+        if ( up [i][a] != up [i][b]){
+            a = up [i][a];  
+            b = up [i][b];
+        }
+    }
+    
+    return up[0][b];
+}
+ 
+void addPaths(const vector <int> &parent, vector<int> &paths, int node , int par){
+    
+    for(auto neighbour : graph [node]){
+        if ( neighbour != par ){
+            addPaths(parent , paths , neighbour , node);
+            paths [node] += paths [neighbour];
+        }
+    }
+    
+}
+void solve() {
+    int n, m;
+    cin >> n >> m;
+    
+    graph . resize( n + 1 );
+    for( int i = 1 ; i < n ; i++ ){
         int a , b ;
         cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
+ 
+        graph [a] . push_back(b);
+        graph [b] . push_back(a);
     }
+ 
+    vector <int> parent (n + 1);
+    parent [1] = -1;
+    makeTree(parent , 1 , -1);
+ 
+    makeUPforLCA(parent , n);
+ 
+    vector <int> paths( n + 1 , 0);
+    while ( m -- )  {
+        int a , b;
+        cin >> a >> b;
+ 
+        int lca = findLCA (a , b);
+        paths [a]++;
+        paths [b]++;
+ 
+        paths [lca]--;
+        paths [up[0][lca]]--;
+    }
+ 
+ 
+    addPaths(parent , paths , 1 , -1);
+    for ( int i = 1 ; i <= n ;i++){
+        cout << paths [i] << " ";
+    }cout << endl;
 }
-
+ 
 int32_t main()
 {
     ios_base::sync_with_stdio(0); cin.tie(0); cout.tie(0);
@@ -157,14 +206,14 @@ int32_t main()
     freopen("input.txt",  "r",  stdin);
     freopen("output.txt", "w", stdout);
 #endif
-
+ 
     clock_t z = clock();
-
+ 
     int t = 1;
     // cin >> t;
     while (t--) solve();
-
+ 
     cerr << "Run Time : " << ((double)(clock() - z) / CLOCKS_PER_SEC);
-
+ 
     return 0;
 }

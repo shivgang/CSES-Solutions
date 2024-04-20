@@ -90,63 +90,130 @@ void __f (const char* names, Arg1&& arg1, Args&&... args)
 }
 
 
+class SegemntTree{
+    vector<int> maxNode;
+    vector<int> A;
+    int n;
+public:
+    SegemntTree(vector<int> A){
+        this->A=A;
+        n=A.size();
+        maxNode.resize(4*n);
+        build(1,0,n-1);
+    }
+    
+    void build(int node,int l,int r){
+        if(l==r){
+            maxNode[node] = A[l];
+            return ;
+        }
+        int mid = l + (r-l)/2;
+        build(2*node,l,mid);
+        build(2*node+1,mid+1,r);
+        
+        maxNode[node] = max (maxNode[2*node] , maxNode[2*node+1]);
+    }
+
+    void update(int index,int value,int l,int r,int node){
+        if(l==r){
+            A[index] = value;
+            maxNode[node] = value;
+            return;
+        }
+
+        int mid = l + (r-l) /2;
+        if(index<=mid)  
+            update(index,value,l,mid,2*node);
+        else    
+            update(index,value,mid+1,r,2*node+1);
+
+        maxNode[node] = max(maxNode[2*node] , maxNode[2*node + 1]);
+    }
+
+    int query(int queryL,int queryR,int l,int r,int node){
+        if(queryL>r || queryR<l)    return 0;
+        if(queryL<=l && queryR>=r)  return maxNode[node];
+
+        int mid = l + (r-l) /2;
+        int leftMax = query(queryL,queryR,l,mid,2*node);
+        int rightMax = query(queryL,queryR,mid+1,r,2*node+1);
+
+        return max (leftMax , rightMax);
+    }
+
+    void printTree(){
+        for(int i=1;i<4*n;i++){
+            cout<<maxNode[i]<<" ";
+        }cout<<endl;
+    }   
+    void update(int index , int value){
+        update (index , value , 0 , n - 1 , 1);
+    }
+    int query (int queryL , int queryR){
+        return query(queryL , queryR , 0 , n - 1 , 1);
+    }
+};
+
+vector <vector <int>> graph;
+vector <int> values;
+vector <int> in;
+vector <int> out;
+
+void dfs (int node , int parent , int &time){
+    in [node] = time;
+    for(auto neighbour : graph[node]){
+        if(neighbour != parent){
+            dfs(neighbour , node , ++time);
+        }
+    }
+    out [node] = ++time;
+}
 void solve() {
     int n , q;
     cin >> n >> q;
-    
-    vector <int> parent ( n + 1 );
-    parent [1] = -1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        cin >> parent [i];
+
+    values.resize (n + 1);
+    for(int i = 1 ; i <= n ; i++){
+        cin >> values [i];
     }
 
-    int MAX = 32;
-    vector <vector <int>>  up( 32 , vector <int> ( n + 1 ));
-    vector <int> depth ( n + 1  , 0);
-
-    up [0][1] = 1;
-    for ( int i = 2 ; i <= n ; i++ ){
-        up [0] [i] = parent [i];
-    }
-
-    for ( int i = 1 ; i < MAX ; i++ ){
-        for ( int j = 1 ; j <= n ; j++ ){
-            if ( j != 1)    depth [j] = depth [parent [j]] + 1;
-            up [i] [j] = up [i-1][ up [i-1][j]];
-        }
-    }
-
-    int size = 0;
-    while ( q-- ){
-        int a , b ;
+    graph.resize (n + 1);
+    for(int i = 1 ; i < n ; i++){
+        int a , b;
         cin >> a >> b;
-
-
-        if ( depth [a] > depth [b] ){
-            swap (a,b);
-        }
-        int d = depth [b] - depth [a];
-
-        for ( int i = 0 ; i < MAX ; i++ ){
-            if ( ( 1 << i ) & d ){
-                b = up [ i ][b];
-            }
-        }
-
-        if ( a == b ){
-            cout << a << endl;
-            continue;
-        }
-
-        for ( int i = MAX - 1 ; i >=0 ; i-- ){
-            if ( up [i][a] != up [i][b]){
-                a = up [i][a];  
-                b = up [i][b];
-            }
-        }
-        
-        cout << up [0][b] << endl;
+        graph [a].push_back (b);
+        graph [b].push_back (a);
     }
+
+    in.resize (n + 1);
+    out.resize (n + 1);
+    int time = 1;
+    dfs (1 , -1 , time);
+
+    vector <int> nums (time + 1);
+    for(int i = 1 ; i <= n ; i++){
+        nums [in [i]] = values [i];
+        nums [out [i]] = values [i];
+    }
+    
+    SegemntTree segment (nums);
+    while(q--){
+        int type;
+        cin >> type;
+        if(type == 1){
+            int node , value;
+            cin >> node >> value;
+            segment.update (in [node] , value);
+            segment.update (out [node] , value);
+        }else{
+            int a , b;
+            cin >> a >> b;
+            int x = segment.query (in [a] , out [b]);
+            int y = segment.query (in [b] , out [a]);
+            cout << max (x , y) << " ";
+        }
+    }
+    
 }
 
 int32_t main()
